@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"context"
+	"os"
+	"os/signal"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer cancel()
+
+	mainCmd := createMainCliCommand()
+
+	mainCmd.Run(ctx, os.Args)
 }
