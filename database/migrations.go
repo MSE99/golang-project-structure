@@ -13,24 +13,38 @@ import (
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
 
-func GenerateNewMigration(db *sql.DB, name string) error {
-	assertInDev()
-
+func setupGoose() {
 	goose.SetDialect("sqlite")
 	goose.SetBaseFS(migrationsFS)
 	goose.SetSequential(true)
+}
 
-	return goose.Create(db, "./database/migrations", name, "sql")
+func GenerateNewMigration(db *sql.DB, name string) error {
+	assertInDev()
+
+	setupGoose()
+
+	return goose.Create(db, "migrations", name, "sql")
 }
 
 func MigrationsStatus(ctx context.Context, db *sql.DB) error {
-	return goose.StatusContext(ctx, db, "./database/migrations")
+	setupGoose()
+	return goose.StatusContext(ctx, db, "migrations")
 }
 
 func MigrateToLatest(ctx context.Context, db *sql.DB) error {
-	goose.SetDialect("sqlite")
+	setupGoose()
+	return goose.UpContext(ctx, db, "migrations")
+}
 
-	return goose.UpContext(ctx, db, "./database/migrations")
+func MigrateUp(ctx context.Context, db *sql.DB) error {
+	setupGoose()
+	return goose.UpByOneContext(ctx, db, "migrations")
+}
+
+func MigrateDown(ctx context.Context, db *sql.DB) error {
+	setupGoose()
+	return goose.DownContext(ctx, db, "migrations")
 }
 
 func assertInDev() {

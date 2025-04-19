@@ -15,14 +15,16 @@ func createDbCommands() *cli.Command {
 		Name:        "db",
 		Description: "Commands to control the database",
 		Commands: []*cli.Command{
-			createDbTestCommand(),
+			createDbStatusCommand(),
 			createDbGenMigrationCommand(),
 			createDbMigrateCommand(),
+			createDbMigrateUpCommand(),
+			createDbMigrateDownCommand(),
 		},
 	}
 }
 
-func createDbTestCommand() *cli.Command {
+func createDbStatusCommand() *cli.Command {
 	return &cli.Command{
 		Name:        "status",
 		Description: "checks the migration status against the current database",
@@ -83,6 +85,46 @@ func createDbMigrateCommand() *cli.Command {
 			defer db.Close()
 
 			err = database.MigrateToLatest(ctx, db)
+			if err != nil {
+				log.Panic(err)
+			}
+			return nil
+		},
+	}
+}
+
+func createDbMigrateUpCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "migrate:up",
+		Description: "Migrates the database to the latest version",
+		Action: func(ctx context.Context, c *cli.Command) error {
+			db, err := database.Connect(ctx, config.DatabaseURL)
+			if err != nil {
+				log.Panic(err)
+			}
+			defer db.Close()
+
+			err = database.MigrateUp(ctx, db)
+			if err != nil {
+				log.Panic(err)
+			}
+			return nil
+		},
+	}
+}
+
+func createDbMigrateDownCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "migrate:down",
+		Description: "Migrates the database to the latest version",
+		Action: func(ctx context.Context, c *cli.Command) error {
+			db, err := database.Connect(ctx, config.DatabaseURL)
+			if err != nil {
+				log.Panic(err)
+			}
+			defer db.Close()
+
+			err = database.MigrateDown(ctx, db)
 			if err != nil {
 				log.Panic(err)
 			}

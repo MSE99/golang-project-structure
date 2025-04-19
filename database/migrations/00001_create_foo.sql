@@ -1,12 +1,11 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE users (
+CREATE TABLE foo (
   username TEXT
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE users;
-DROP TABLE baz;
+DROP TABLE foo;
 -- +goose StatementEnd
