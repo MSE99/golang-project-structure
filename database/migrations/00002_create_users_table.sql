@@ -1,7 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-  username TEXT
+  username TEXT,
+  password TEXT
 );
 -- +goose StatementEnd
 

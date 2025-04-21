@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	"github.com/doug-martin/goqu/v9"
 )
@@ -33,7 +34,25 @@ func LoadAllUsers(ctx context.Context, tx *sql.Tx) ([]User, error) {
 		if err != nil {
 			continue
 		}
+
+		users = append(users, u)
 	}
 
 	return users, nil
+}
+
+func InsertUser(ctx context.Context, tx *sql.Tx, u User) error {
+	q, args, err := goqu.Insert("users").Cols("username", "password").Vals([]any{u.Username, u.Password}).ToSQL()
+	if err != nil {
+		return err
+	}
+
+	log.Println(q, args)
+
+	_, err = tx.ExecContext(ctx, q, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

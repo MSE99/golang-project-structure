@@ -23,6 +23,7 @@ func createDbCommands() *cli.Command {
 			createDbMigrateUpCommand(),
 			createDbMigrateDownCommand(),
 			createDbListUsersCommand(),
+			createDbSeedUserCommand(),
 		},
 	}
 }
@@ -137,11 +138,6 @@ func createDbMigrateDownCommand() *cli.Command {
 }
 
 func createDbListUsersCommand() *cli.Command {
-	type user struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
 	return &cli.Command{
 		Name:        "list:users",
 		Description: "lists the current users in the DB",
@@ -167,6 +163,39 @@ func createDbListUsersCommand() *cli.Command {
 
 			for _, u := range users {
 				log.Println(u.Username)
+			}
+
+			return nil
+		},
+	}
+
+}
+
+func createDbSeedUserCommand() *cli.Command {
+	return &cli.Command{
+		Name:        "seed:users",
+		Description: "seeds a new users",
+		Action: func(ctx context.Context, c *cli.Command) error {
+			db, err := database.Connect(ctx, config.DatabaseURL)
+			if err != nil {
+				log.Panic(err)
+			}
+			defer db.Close()
+
+			tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+			if err != nil {
+				return nil
+			}
+			defer tx.Rollback()
+
+			err = models.InsertUser(ctx, tx, models.User{Username: "foo", Password: "HASHED_PWD"})
+			if err != nil {
+				return nil
+			}
+
+			err = tx.Commit()
+			if err != nil {
+				log.Panic(err)
 			}
 
 			return nil
