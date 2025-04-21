@@ -3,6 +3,8 @@ module github.com/mse99/golang-project-structure
 go 1.23.3
 
 require (
+	github.com/doug-martin/goqu/v9 v9.19.0 // indirect
+	github.com/go-jet/jet/v2 v2.13.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect

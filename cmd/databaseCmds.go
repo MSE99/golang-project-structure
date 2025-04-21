@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/mse99/golang-project-structure/config"
 	"github.com/mse99/golang-project-structure/database"
 	"github.com/urfave/cli/v3"
@@ -20,6 +21,7 @@ func createDbCommands() *cli.Command {
 			createDbMigrateCommand(),
 			createDbMigrateUpCommand(),
 			createDbMigrateDownCommand(),
+			createDbListUsersCommand(),
 		},
 	}
 }
@@ -131,4 +133,55 @@ func createDbMigrateDownCommand() *cli.Command {
 			return nil
 		},
 	}
+}
+
+func createDbListUsersCommand() *cli.Command {
+	type user struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+
+	return &cli.Command{
+		Name:        "list:users",
+		Description: "lists the current users in the DB",
+		Action: func(ctx context.Context, c *cli.Command) error {
+			db, err := database.Connect(ctx, config.DatabaseURL)
+			if err != nil {
+				log.Panic(err)
+			}
+			defer db.Close()
+
+			query, _, err := goqu.From("users").Select("username", "password").ToSQL()
+			if err != nil {
+				log.Panic(err)
+			}
+
+			rows, err := db.QueryContext(ctx, query)
+			if err != nil {
+				log.Panic(err)
+			}
+			defer rows.Close()
+
+			users := make([]user, 0, 100)
+
+			for rows.Next() {
+				var u user
+
+				err := rows.Scan(&u.Username, &u.Password)
+				if err != nil {
+					log.Panic(err)
+				}
+
+				users = append(users, u)
+			}
+
+			log.Println("fetched users from database")
+			for _, u := range users {
+				log.Println("user ", u.Username)
+			}
+
+			return nil
+		},
+	}
+
 }
