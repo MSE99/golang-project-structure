@@ -1,0 +1,30 @@
+package views
+
+import "github.com/mse99/golang-project-structure/pkg/models"
+
+templ layout(title string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title }</title>
+		</head>
+		<body>
+			{ children... }
+		</body>
+	</html>
+}
+
+templ Home(users []models.User, count string) {
+	@layout("Home") {
+		<h1>Welcome To Example Project</h1>
+		<h2>Users</h2>
+		<p>This page was visited { count } times, refresh to increment!</p>
+		<ul>
+			for _, user := range users {
+				<li>{ user.Username }</li>
+			}
+		</ul>
+	}
+}
