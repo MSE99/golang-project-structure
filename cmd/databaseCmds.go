@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 
-	"github.com/doug-martin/goqu/v9"
 	"github.com/mse99/golang-project-structure/config"
 	"github.com/mse99/golang-project-structure/database"
+	"github.com/mse99/golang-project-structure/pkg/models"
 	"github.com/urfave/cli/v3"
 )
 
@@ -151,33 +152,21 @@ func createDbListUsersCommand() *cli.Command {
 			}
 			defer db.Close()
 
-			query, _, err := goqu.From("users").Select("username", "password").ToSQL()
+			tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 			if err != nil {
-				log.Panic(err)
+				return nil
 			}
+			defer tx.Commit()
 
-			rows, err := db.QueryContext(ctx, query)
+			users, err := models.LoadAllUsers(ctx, tx)
 			if err != nil {
-				log.Panic(err)
-			}
-			defer rows.Close()
-
-			users := make([]user, 0, 100)
-
-			for rows.Next() {
-				var u user
-
-				err := rows.Scan(&u.Username, &u.Password)
-				if err != nil {
-					log.Panic(err)
-				}
-
-				users = append(users, u)
+				return nil
 			}
 
-			log.Println("fetched users from database")
+			log.Println("loaded all users")
+
 			for _, u := range users {
-				log.Println("user ", u.Username)
+				log.Println(u.Username)
 			}
 
 			return nil
